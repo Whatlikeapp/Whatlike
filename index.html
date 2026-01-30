@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>WhatLike</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #0b0b0b;
+      color: white;
+    }
+    #login, #chat {
+      padding: 20px;
+    }
+    #chat {
+      display: none;
+    }
+    #messages {
+      height: 65vh;
+      overflow-y: auto;
+      margin-bottom: 10px;
+      border: 1px solid #333;
+      padding: 10px;
+    }
+    input {
+      width: 70%;
+      padding: 10px;
+      border-radius: 5px;
+      border: none;
+    }
+    button {
+      padding: 10px 15px;
+      background: #8B0000; /* rojo sangre de toro */
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<div id="login">
+  <h2>🔥 WhatLike</h2>
+  <p>Chat público gratuito</p>
+  <input id="username" placeholder="Tu apodo" />
+  <button onclick="enterChat()">Entrar</button>
+</div>
+
+<div id="chat">
+  <div id="messages"></div>
+  <input id="message" placeholder="Escribí tu mensaje..." />
+  <button onclick="sendMessage()">Enviar</button>
+</div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+<script>
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  let user = "";
+
+  function enterChat() {
+    user = document.getElementById("username").value;
+    if (!user) {
+      alert("Poné un apodo");
+      return;
+    }
+    document.getElementById("login").style.display = "none";
+    document.getElementById("chat").style.display = "block";
+  }
+
+  function sendMessage() {
+    const text = document.getElementById("message").value;
+    if (!text) return;
+
+    db.collection("messages").add({
+      user: user,
+      text: text,
+      time: Date.now()
+    });
+
+    document.getElementById("message").value = "";
+  }
+
+  db.collection("messages")
+    .orderBy("time")
+    .onSnapshot(snapshot => {
+      const box = document.getElementById("messages");
+      box.innerHTML = "";
+      snapshot.forEach(doc => {
+        const m = doc.data();
+        box.innerHTML += `<p><b>${m.user}:</b> ${m.text}</p>`;
+      });
+      box.scrollTop = box.scrollHeight;
+    });
+</script>
+
+</body>
+</html> 
